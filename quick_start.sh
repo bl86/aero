@@ -9,6 +9,17 @@ echo ""
 
 INSTALL_DIR="$HOME/llm_system"
 
+# Detect WSL2
+IS_WSL=false
+if grep -qi microsoft /proc/version; then
+    IS_WSL=true
+    echo "✓ WSL2 detected"
+    echo ""
+    echo "IMPORTANT: You are running on WSL2."
+    echo "Please read WSL2_SETUP.md for complete setup instructions."
+    echo ""
+fi
+
 if [ ! -d "$INSTALL_DIR" ]; then
     echo "System not installed. Running installation..."
     echo ""
@@ -16,15 +27,25 @@ if [ ! -d "$INSTALL_DIR" ]; then
     read -p "Do you want to install GPU drivers? (y/n): " install_gpu
     if [ "$install_gpu" = "y" ]; then
         echo "Installing GPU support..."
-        chmod +x setup_gpu.sh
-        ./setup_gpu.sh
 
-        echo ""
-        echo "GPU setup complete. Please reboot your system:"
-        echo "  sudo reboot"
-        echo ""
-        echo "After reboot, run this script again to continue."
-        exit 0
+        if [ "$IS_WSL" = true ]; then
+            echo ""
+            echo "Using WSL2 GPU setup..."
+            chmod +x setup_gpu_wsl2.sh
+            ./setup_gpu_wsl2.sh
+        else
+            echo ""
+            echo "Using native Linux GPU setup..."
+            chmod +x setup_gpu.sh
+            ./setup_gpu.sh
+
+            echo ""
+            echo "GPU setup complete. Please reboot your system:"
+            echo "  sudo reboot"
+            echo ""
+            echo "After reboot, run this script again to continue."
+            exit 0
+        fi
     fi
 
     echo "Installing LLM system..."
